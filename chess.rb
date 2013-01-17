@@ -1,5 +1,5 @@
 # coding:UTF-8 vi:et:ts=2
-require 'debugger'
+#require 'debugger'
 
 class Chess
   attr_reader :board
@@ -31,12 +31,15 @@ class Chess
   end
 
   def play
+    create_board
     while true
       begin_at, end_at = @player.get_move
       if @board[begin_at].piece
-        @board[end_at].place_piece(@board[begin_at].piece)
-        @board[begin_at].remove_piece(@board[begin_at].piece)
-      else 
+        if @board[begin_at].piece.move?(end_at)
+           @board[end_at].place_piece(@board[begin_at].piece)
+           @board[begin_at].remove_piece(@board[begin_at].piece)
+        end
+      else
         next
       end
       print_board
@@ -77,19 +80,19 @@ class Chess
       tile = @board[[row, column]]
       tile.place_piece(Rook.new(color, [row, column]))
     end
-    
+
     # Knights
     [2,7].each do |column|
       tile = @board[[row, column]]
       tile.place_piece(Knight.new(color, [row, column]))
     end
-    
+
     # Bishops
     [3,6].each do |column|
       tile = @board[[row, column]]
       tile.place_piece(Bishop.new(color, [row, column]))
     end
-    
+
     # King
       tile = @board[[row, 4]]
       tile.place_piece(King.new(color, [row, 4]))
@@ -136,7 +139,7 @@ class Piece
     # KINGMOVES =
 
   def initialize(color, coordinates)
-    @row, @column = coordinates
+    @coordinates = coordinates
     @color = color
     @symbol = @color == "white" ? symbols[0] : symbols[1]
   end
@@ -144,8 +147,6 @@ class Piece
   def move(coordinates)
 
   end
-
-
 end
 
 class Pawn < Piece
@@ -160,32 +161,51 @@ class Pawn < Piece
 end
 
 class Rook < Piece
-def symbols
+  def symbols
     ["♜", "♖"]
   end
 end
 
 class Bishop < Piece
-def symbols
+  def symbols
     ["♝", "♗"]
   end
 end
 
 class Knight < Piece
-  # KNIGHTMOVES = [[+2, +1],[+2, -1],[-2, +1],[-2,-1],[+1, +2],[+1, -2],[-1, +2],[-1,-2]]
-def symbols
+  KNIGHTMOVES = [[2, 1],[2, -1],[-2, 1],[-2,-1],[1, 2],[1, -2],[-1, 2],[-1,-2]]
+  def symbols
     ["♞", "♘"]
   end
+
+  def move?(target)
+    valid_moves.include?(target)
+  end
+
+  def valid_moves
+    valids = []
+
+      valids = KNIGHTMOVES.map do |coord|
+        x = coord[0] + @coordinates[0]
+        y = coord[1] + @coordinates[1]
+        [x, y]
+      end
+
+    valids.select! { |valid| (1..8).include?(valid[0]) && (1..8).include?(valid[1]) }
+
+    valids
+  end
+
 end
 
 class King < Piece
-def symbols
+  def symbols
     ["♛", "♕"]
   end
 end
 
 class Queen < Piece
-def symbols
+  def symbols
     ["♚", "♔"]
   end
 end
