@@ -15,36 +15,19 @@ class Chess
   end
 
   def print_board
+    (1..8).each {|num| print "  #{num}"}
+    puts
     8.downto(1).each do |row|
       (1..8).each do |column|
-        print "#{column}"
-        @board[[row, column]].piece.symbol
+        if @board[[row,column]].piece
+          print "  #{@board[[row,column]].piece.symbol}"
+        else
+          print "  ▢"
+        end
       end
+      print "\n"
     end
   end
-
-    #Test Print
-    # @board.keys.each do |key|
-    #   if @board[key].piece.class == Pawn
-    #     if key[1] % 8 ==0
-    #       print "P \n"
-    #     else
-    #       print "P"
-    #     end
-    #   elsif @board[key].piece.class == Rook
-    #     if key[1] % 8 ==0
-    #       print "R \n"
-    #     else
-    #       print "R"
-    #     end
-    #   else
-    #     if key[1] % 8 == 0
-    #       print "* \n"
-    #     else
-    #      print "*"
-    #    end
-    #   end
-    # end
 
   def play
   end
@@ -184,7 +167,7 @@ end
 
 class King < Piece
 def symbols
-    ["♕", "♛"]
+    ["♛", "♕"]
   end
 end
 
