@@ -16,9 +16,16 @@ class Chess
   end
 
   def print_board
+    puts
+    print "  "
     (1..8).each {|num| print "  #{num}"}
     puts
+    print "   "
+    8.times { print "___"}
+    puts
+    puts
     8.downto(1).each do |row|
+      print "#{row}|"
       (1..8).each do |column|
         if @board[[row,column]].piece
           print "  #{@board[[row,column]].piece.symbol}"
@@ -34,10 +41,19 @@ class Chess
     create_board
     while true
       begin_at, end_at = @player.get_move
+
+      # Check if there is a piece at the space the user wants to move from.
       if @board[begin_at].piece
+        # Check if the piece belongs to the player
+        #if @board[begin_at].piece.color = @player.color
+
+        # Validate Move
         if @board[begin_at].piece.move?(end_at)
-           @board[end_at].place_piece(@board[begin_at].piece)
-           @board[begin_at].remove_piece(@board[begin_at].piece)
+
+          # Make Move
+          @board[begin_at].piece.move(end_at)
+          @board[end_at].place_piece(@board[begin_at].piece)
+          @board[begin_at].remove_piece(@board[begin_at].piece)
         end
       else
         next
@@ -133,10 +149,18 @@ class Square
 end
 
 class Piece
+  JUMPINGMOVES = {
+  "king_moves" => [[1,1],[1,0],[1,-1],[0,-1],[0,1],[-1,1],[-1,0],[-1,-1]],
+  "knight_moves" => [[2, 1],[2, -1],[-2, 1],[-2,-1],[1, 2],[1, -2],[-1, 2],[-1,-2]]
+}
+
+  # SLIDINGMOVES = {
+  #   "rook_moves" => [[1,0],[-1,0],[0,1],[0,-1]]
+  # }
+
   attr_reader :color, :symbol
     # ROOKMOVES =
     # QUEENMOVES = ROOKMOVES + BISHOPMOVES
-    # KINGMOVES =
 
   def initialize(color, coordinates)
     @coordinates = coordinates
@@ -144,9 +168,29 @@ class Piece
     @symbol = @color == "white" ? symbols[0] : symbols[1]
   end
 
-  def move(coordinates)
-
+  def move(target)
+      @coordinates = target
   end
+
+  def move?(target)
+    valid_moves.include?(target)
+  end
+
+  def valid_moves
+    valids = []
+    constant = JUMPINGMOVES[self.class.to_s.downcase + "_moves"]
+
+      valids = constant.map do |coord|
+        x = coord[0] + @coordinates[0]
+        y = coord[1] + @coordinates[1]
+        [x, y]
+      end
+
+    valids.select! { |valid| (1..8).include?(valid[0]) && (1..8).include?(valid[1]) }
+
+    valids
+  end
+
 end
 
 class Pawn < Piece
@@ -160,12 +204,34 @@ class Pawn < Piece
 
 end
 
+# Has its own valid moves method because its a sliding piece
 class Rook < Piece
   def symbols
     ["♜", "♖"]
   end
+
+  def valid_moves
+    possibilities = (1..7).to_a
+
+    valids_column = possibilities.map do |coord|
+      x = coord + @coordinates[0]
+      y = @coordinates[1]
+
+      [x, y]
+    end
+
+    valids_row = possibilities.map do |coord|
+      x = @coordinates[0]
+      y = coord + @coordinates[1]
+
+      [x, y]
+    end
+
+    valids_column += valids_row
+  end
 end
 
+# Has its own valid moves method because its a sliding piece
 class Bishop < Piece
   def symbols
     ["♝", "♗"]
@@ -173,35 +239,20 @@ class Bishop < Piece
 end
 
 class Knight < Piece
-  KNIGHTMOVES = [[2, 1],[2, -1],[-2, 1],[-2,-1],[1, 2],[1, -2],[-1, 2],[-1,-2]]
+
   def symbols
     ["♞", "♘"]
-  end
-
-  def move?(target)
-    valid_moves.include?(target)
-  end
-
-  def valid_moves
-    valids = []
-
-      valids = KNIGHTMOVES.map do |coord|
-        x = coord[0] + @coordinates[0]
-        y = coord[1] + @coordinates[1]
-        [x, y]
-      end
-
-    valids.select! { |valid| (1..8).include?(valid[0]) && (1..8).include?(valid[1]) }
-
-    valids
   end
 
 end
 
 class King < Piece
+
   def symbols
     ["♛", "♕"]
   end
+
+
 end
 
 class Queen < Piece
@@ -211,6 +262,8 @@ class Queen < Piece
 end
 
 class User
+  attr_reader :color
+
   def get_move
     move_set = []
     puts "Select tile of piece you are moving (row column)"
