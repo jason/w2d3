@@ -4,14 +4,15 @@ require 'debugger'
 class Chess
   attr_reader :board
 
-   
   def initialize
     @board = {}
+    @player = User.new
   end
 
   def create_board
     squares_to_board
     ["white","black"].each {|color| set_pieces(color)}
+    print_board
   end
 
   def print_board
@@ -30,6 +31,16 @@ class Chess
   end
 
   def play
+    while true
+      begin_at, end_at = @player.get_move
+      if @board[begin_at].piece
+        @board[end_at].place_piece(@board[begin_at].piece)
+        @board[begin_at].remove_piece(@board[begin_at].piece)
+      else 
+        next
+      end
+      print_board
+    end
   end
 
   def locations_list
@@ -112,6 +123,10 @@ class Square
     @piece = piece
   end
 
+  def remove_piece(piece)
+    toggle_fill
+    @piece = nil
+  end
 end
 
 class Piece
@@ -123,14 +138,12 @@ class Piece
   def initialize(color, coordinates)
     @row, @column = coordinates
     @color = color
-
     @symbol = @color == "white" ? symbols[0] : symbols[1]
-
-  #   PIECEKEY = { "wpawn" => "♟", "wrook" => "♜", "wbishop" => "♝", "wknight" => "♞", "wking" => "♛", "wqueen" => "♚",
-  #   "bpawn" => "♙", "brook" => "♖", "bbishop" => "♗", "bknight" => "♘", "bking" => "♕", "bqueen" => "♔"}
-  #   @color = color
   end
 
+  def move(coordinates)
+
+  end
 
 
 end
@@ -148,13 +161,13 @@ end
 
 class Rook < Piece
 def symbols
-    ["♜", "♙"]
+    ["♜", "♖"]
   end
 end
 
 class Bishop < Piece
 def symbols
-    ["♟", "♖"]
+    ["♝", "♗"]
   end
 end
 
@@ -178,7 +191,15 @@ def symbols
 end
 
 class User
+  def get_move
+    move_set = []
+    puts "Select tile of piece you are moving (row column)"
+    move_set << gets.chomp.split(" ").map {|num| num.to_i}
+    puts "where you wanna put it, yo"
+    move_set << gets.chomp.split(" ").map {|num| num.to_i}
 
+    move_set
+  end
 end
 
 
