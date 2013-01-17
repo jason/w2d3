@@ -169,7 +169,7 @@ class Piece
   end
 
   def move(target)
-      @coordinates = target
+    @coordinates = target
   end
 
   def move?(target)
@@ -212,22 +212,23 @@ class Rook < Piece
 
   def valid_moves
     possibilities = (1..7).to_a
+    valids = []
 
-    valids_column = possibilities.map do |coord|
+    valids += possibilities.map do |coord|
       x = coord + @coordinates[0]
       y = @coordinates[1]
 
       [x, y]
     end
 
-    valids_row = possibilities.map do |coord|
+    valids += possibilities.map do |coord|
       x = @coordinates[0]
       y = coord + @coordinates[1]
 
       [x, y]
     end
 
-    valids_column += valids_row
+    valids
   end
 end
 
@@ -235,6 +236,43 @@ end
 class Bishop < Piece
   def symbols
     ["♝", "♗"]
+  end
+
+  def valid_moves
+    possibilities = (1..7).to_a
+    valids = []
+
+    valids += possibilities.map do |coord|
+      x = coord + @coordinates[0]
+      y = coord + @coordinates[1]
+
+      [x, y]
+    end
+
+    valids += possibilities.map do |coord|
+      x = @coordinates[0] - coord
+      y = coord + @coordinates[1]
+
+      [x, y]
+    end
+
+    valids += possibilities.map do |coord|
+      x = coord + @coordinates[0]
+      y = @coordinates[1] - coord
+
+      [x, y]
+    end
+
+    valids += possibilities.map do |coord|
+      x = @coordinates[0] - coord
+      y = @coordinates[1] - coord
+
+      [x, y]
+    end
+
+    valids.select! { |valid| (1..8).include?(valid[0]) && (1..8).include?(valid[1]) }
+
+    valids 
   end
 end
 
@@ -259,6 +297,58 @@ class Queen < Piece
   def symbols
     ["♚", "♔"]
   end
+
+  def valid_moves
+    possibilities = (1..7).to_a
+    valids = []
+
+    valids += possibilities.map do |coord|
+      x = coord + @coordinates[0]
+      y = @coordinates[1]
+
+      [x, y]
+    end
+
+    valids += possibilities.map do |coord|
+      x = @coordinates[0]
+      y = coord + @coordinates[1]
+
+      [x, y]
+    end
+
+    valids += possibilities.map do |coord|
+      x = coord + @coordinates[0]
+      y = coord + @coordinates[1]
+
+      [x, y]
+    end
+
+    valids += possibilities.map do |coord|
+      x = @coordinates[0] - coord
+      y = coord + @coordinates[1]
+
+      [x, y]
+    end
+
+    valids += possibilities.map do |coord|
+      x = coord + @coordinates[0]
+      y = @coordinates[1] - coord
+
+      [x, y]
+    end
+
+    valids += possibilities.map do |coord|
+      x = @coordinates[0] - coord
+      y = @coordinates[1] - coord
+
+      [x, y]
+    end
+
+    valids.select! { |valid| (1..8).include?(valid[0]) && (1..8).include?(valid[1]) }
+
+    valids 
+  end
+
 end
 
 class User
