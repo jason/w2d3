@@ -210,23 +210,44 @@ class Rook < Piece
     ["♜", "♖"]
   end
 
+  # def valid_paths
+  #   paths = []
+  #   directions = [1,-1]
+  #   directions.each do |direction|
+  #     path = []
+  #     i = 1 * direction
+  #     until i > 7 || i < -7
+  #       coords = []
+        
+  #   end
+
+
+
+
   def valid_moves
     possibilities = (1..7).to_a
     valids = []
+    directions = [1,-1]
 
-    valids += possibilities.map do |coord|
-      x = coord + @coordinates[0]
-      y = @coordinates[1]
+    directions.each do |direction|
+      # Move left/right along row
+      valids += possibilities.map do |coord|
+        x = (coord * direction) + @coordinates[0]
+        y = @coordinates[1]
 
-      [x, y]
+        [x, y]
+      end
+
+      #Move up/down along column
+      valids += possibilities.map do |coord|
+        x = @coordinates[0]
+        y = (coord * direction) + @coordinates[1]
+
+        [x, y]
+      end
     end
 
-    valids += possibilities.map do |coord|
-      x = @coordinates[0]
-      y = coord + @coordinates[1]
-
-      [x, y]
-    end
+    valids.select! { |valid| (1..8).include?(valid[0]) && (1..8).include?(valid[1]) }
 
     valids
   end
@@ -358,7 +379,7 @@ class User
     move_set = []
     puts "Select tile of piece you are moving (row column)"
     move_set << gets.chomp.split(" ").map {|num| num.to_i}
-    puts "where you wanna put it, yo"
+    puts "Select tile where you would like to place your piece"
     move_set << gets.chomp.split(" ").map {|num| num.to_i}
 
     move_set
