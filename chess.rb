@@ -210,6 +210,51 @@ class Piece
     valids
   end
 
+  def valids_bishop(board)
+    start = @coordinates
+    valids = []
+    directions = [1,-1]
+
+    directions.each do |direction|
+
+      # builds left to right diagonal
+      1.upto(7) do |i|
+        i = i * direction
+        new_coords = [(start[0]+i), (start[1]+i)]
+
+        if board.has_key?(new_coords) # Coords exist on board
+          if board[new_coords].piece == nil # Empty square
+            valids << new_coords
+          elsif board[new_coords].piece.color == self.color
+            break
+          else # Has a piece of opposite color
+            valids << new_coords
+            break
+          end
+        end
+      end
+
+      # builds right to left diagonal
+      1.upto(7) do |i|
+        i = i * direction
+        new_coords = [(start[0]-i), (start[1]+i)]
+
+        if board.has_key?(new_coords) # Coords exist on board
+          if board[new_coords].piece == nil # Empty square
+            valids << new_coords
+          elsif board[new_coords].piece.color == self.color
+            break
+          else # Has a piece of opposite color
+            valids << new_coords
+            break
+          end
+        end
+      end
+    end
+
+    valids
+  end
+
   # Default for jumping pieces
   def valid_moves(board)
     valids = []
