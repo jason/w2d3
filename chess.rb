@@ -153,22 +153,18 @@ class Piece
   "knight_moves" => [[2, 1],[2, -1],[-2, 1],[-2,-1],[1, 2],[1, -2],[-1, 2],[-1,-2]]
 }
 
-  # SLIDINGMOVES = {
-  #   "rook_moves" => [[1,0],[-1,0],[0,1],[0,-1]]
-  # }
-
-  attr_reader :color, :symbol
-    # ROOKMOVES =
-    # QUEENMOVES = ROOKMOVES + BISHOPMOVES
+  attr_reader :color, :symbol, :moved
 
   def initialize(color, coordinates)
     @coordinates = coordinates
+    @moved = false
     @color = color
     @symbol = @color == "white" ? symbols[0] : symbols[1]
   end
 
   def move(target, board)
     @coordinates = target
+    @moved = true
     board[target].place_piece(self)
   end
 
@@ -176,48 +172,12 @@ class Piece
     valid_moves(board).include?(target)
   end
 
-  def valid_moves(board)
-    valids = []
-    constant = JUMPINGMOVES[self.class.to_s.downcase + "_moves"]
-
-      valids = constant.map do |coord|
-        x = coord[0] + @coordinates[0]
-        y = coord[1] + @coordinates[1]
-        [x, y]
-      end
-
-    valids.select! { |valid| (1..8).include?(valid[0]) && (1..8).include?(valid[1]) }
-
-    valids
-  end
-
-end
-
-class Pawn < Piece
-  def symbols
-    ["♟", "♙"]
-  end
-
-  def move
-
-  end
-
-end
-
-# Has its own valid moves method because its a sliding piece
-class Rook < Piece
-  def symbols
-    ["♜", "♖"]
-  end
-
-
-  def valid_moves(board)
+  def valids_rook(board)
     start = @coordinates
     valids = []
     directions = [1,-1]
 
     directions.each do |direction|
-      # valids << [(start[0]+direction), start[1]]
     
       # builds valid path up and down (add/subtract rows)
       1.upto(7) do |i|
@@ -255,6 +215,87 @@ class Rook < Piece
     end
 
     valids
+  end
+
+  # Default for jumping pieces
+  def valid_moves(board)
+    valids = []
+    constant = JUMPINGMOVES[self.class.to_s.downcase + "_moves"]
+
+      valids = constant.map do |coord|
+        x = coord[0] + @coordinates[0]
+        y = coord[1] + @coordinates[1]
+        [x, y]
+      end
+
+    valids.select! { |valid| (1..8).include?(valid[0]) && (1..8).include?(valid[1]) }
+
+    valids
+  end
+
+end
+
+class Pawn < Piece
+
+  def symbols
+    ["♟", "♙"]
+  end
+
+  def valid_moves(board)
+    valids = []
+
+    if color == "white"
+      shift = [1, 2]
+    else
+      shift = [-1, -2]
+    end
+
+    diagonal_squares = [
+      [(@coordinates[0]+shift[0]), (@coordinates[1]+shift[0])],
+      [(@coordinates[0]+shift[0]), (@coordinates[1]-shift[0])]
+    ]
+
+    # Straight moves
+    if moved == false
+      shift.each do |i| 
+        new_coords = [(@coordinates[0]+i), @coordinates[1]]
+        if board[new_coords].piece 
+          break
+        else
+          valids << new_coords
+        end
+      end
+    
+    else 
+      new_coords = [(@coordinates[0]+shift[0]),@coordinates[1]]
+      valids << new_coords if board[new_coords].piece == nil
+    end
+
+    # Check for opposite color pieces on the sides and add to valid moves if there are
+    diagonal_squares.select! do |coords| 
+      board.has_key?(coords) && board[coords].piece
+    end
+    unless diagonal_squares.empty? 
+      diagonal_squares.each do |coords|
+        unless board[coords].piece.color == color
+          valids << coords
+        end
+      end
+    end
+
+    valids
+  end
+
+end
+
+# Has its own valid moves method because its a sliding piece
+class Rook < Piece
+  def symbols
+    ["♜", "♖"]
+  end
+
+  def valid_moves(board)
+    valids_rook(board)
   end
 end
 
