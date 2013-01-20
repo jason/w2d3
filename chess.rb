@@ -128,21 +128,14 @@ class Square
 
   def initialize(coordinates)
     @row, @column = coordinates
-    @empty = true
     @piece = nil
   end
 
-  def toggle_fill
-    @empty = !@empty
-  end
-
   def place_piece(piece)
-    toggle_fill
     @piece = piece
   end
 
   def remove_piece
-    toggle_fill
     @piece = nil
   end
 end
@@ -288,7 +281,6 @@ class Pawn < Piece
 
 end
 
-# Has its own valid moves method because its a sliding piece
 class Rook < Piece
   def symbols
     ["♜", "♖"]
@@ -306,42 +298,10 @@ class Bishop < Piece
     ["♝", "♗"]
   end
 
-  def valid_moves
-    possibilities = (1..7).to_a
-    valids = []
-
-    valids += possibilities.map do |coord|
-      x = coord + @coordinates[0]
-      y = coord + @coordinates[1]
-
-      [x, y]
-    end
-
-    valids += possibilities.map do |coord|
-      x = @coordinates[0] - coord
-      y = coord + @coordinates[1]
-
-      [x, y]
-    end
-
-    valids += possibilities.map do |coord|
-      x = coord + @coordinates[0]
-      y = @coordinates[1] - coord
-
-      [x, y]
-    end
-
-    valids += possibilities.map do |coord|
-      x = @coordinates[0] - coord
-      y = @coordinates[1] - coord
-
-      [x, y]
-    end
-
-    valids.select! { |valid| (1..8).include?(valid[0]) && (1..8).include?(valid[1]) }
-
-    valids 
+  def valid_moves(board)
+    valids_bishop(board)
   end
+
 end
 
 class Knight < Piece
@@ -358,7 +318,6 @@ class King < Piece
     ["♛", "♕"]
   end
 
-
 end
 
 class Queen < Piece
@@ -366,55 +325,8 @@ class Queen < Piece
     ["♚", "♔"]
   end
 
-  def valid_moves
-    possibilities = (1..7).to_a
-    valids = []
-
-    valids += possibilities.map do |coord|
-      x = coord + @coordinates[0]
-      y = @coordinates[1]
-
-      [x, y]
-    end
-
-    valids += possibilities.map do |coord|
-      x = @coordinates[0]
-      y = coord + @coordinates[1]
-
-      [x, y]
-    end
-
-    valids += possibilities.map do |coord|
-      x = coord + @coordinates[0]
-      y = coord + @coordinates[1]
-
-      [x, y]
-    end
-
-    valids += possibilities.map do |coord|
-      x = @coordinates[0] - coord
-      y = coord + @coordinates[1]
-
-      [x, y]
-    end
-
-    valids += possibilities.map do |coord|
-      x = coord + @coordinates[0]
-      y = @coordinates[1] - coord
-
-      [x, y]
-    end
-
-    valids += possibilities.map do |coord|
-      x = @coordinates[0] - coord
-      y = @coordinates[1] - coord
-
-      [x, y]
-    end
-
-    valids.select! { |valid| (1..8).include?(valid[0]) && (1..8).include?(valid[1]) }
-
-    valids 
+  def valid_moves(board)
+    valids_rook(board) + valids_bishop(board)
   end
 
 end
