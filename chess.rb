@@ -48,12 +48,11 @@ class Chess
         #if @board[begin_at].piece.color = @player.color
 
         # Validate Move
-        if @board[begin_at].piece.move?(end_at)
+        if @board[begin_at].piece.move?(end_at, @board)
 
           # Make Move
-          @board[begin_at].piece.move(end_at)
-          @board[end_at].place_piece(@board[begin_at].piece)
-          @board[begin_at].remove_piece(@board[begin_at].piece)
+          @board[begin_at].piece.move(end_at, @board)
+          @board[begin_at].remove_piece
         end
       else
         next
@@ -142,7 +141,7 @@ class Square
     @piece = piece
   end
 
-  def remove_piece(piece)
+  def remove_piece
     toggle_fill
     @piece = nil
   end
@@ -168,15 +167,16 @@ class Piece
     @symbol = @color == "white" ? symbols[0] : symbols[1]
   end
 
-  def move(target)
+  def move(target, board)
     @coordinates = target
+    board[target].place_piece(self)
   end
 
-  def move?(target)
-    valid_moves.include?(target)
+  def move?(target, board)
+    valid_moves(board).include?(target)
   end
 
-  def valid_moves
+  def valid_moves(board)
     valids = []
     constant = JUMPINGMOVES[self.class.to_s.downcase + "_moves"]
 
@@ -210,48 +210,54 @@ class Rook < Piece
     ["♜", "♖"]
   end
 
-  # def valid_paths
-  #   paths = []
-  #   directions = [1,-1]
-  #   directions.each do |direction|
-  #     path = []
-  #     i = 1 * direction
-  #     until i > 7 || i < -7
-  #       coords = []
-        
-  #   end
 
-
-
-
-  def valid_moves
-    possibilities = (1..7).to_a
+  def valid_moves(board)
+    start = @coordinates
     valids = []
     directions = [1,-1]
 
     directions.each do |direction|
-      # Move left/right along row
-      valids += possibilities.map do |coord|
-        x = (coord * direction) + @coordinates[0]
-        y = @coordinates[1]
+      # valids << [(start[0]+direction), start[1]]
+    
+      # builds valid path up and down (add/subtract rows)
+      1.upto(7) do |i|
+        i = i * direction
+        new_coords = [(start[0]+i), start[1]]
 
-        [x, y]
+        if board.has_key?(new_coords) # Coords exist on board
+          if board[new_coords].piece == nil # Empty square
+            valids << new_coords
+          elsif board[new_coords].piece.color == self.color
+            break
+          else # Has a piece of opposite color
+            valids << new_coords
+            break
+          end
+        end
       end
 
-      #Move up/down along column
-      valids += possibilities.map do |coord|
-        x = @coordinates[0]
-        y = (coord * direction) + @coordinates[1]
+      1.upto(7) do |i|
+        i = i * direction
+        new_coords = [start[0], (start[1]+i)]
 
-        [x, y]
+        if board.has_key?(new_coords)
+          if board[new_coords].piece == nil
+            valids << new_coords
+          elsif board[new_coords].piece.color == self.color
+            break
+          else
+              valids << new_coords
+              break
+          end
+        end
       end
+
     end
-
-    valids.select! { |valid| (1..8).include?(valid[0]) && (1..8).include?(valid[1]) }
 
     valids
   end
 end
+
 
 # Has its own valid moves method because its a sliding piece
 class Bishop < Piece
